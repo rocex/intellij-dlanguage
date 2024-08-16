@@ -15,8 +15,8 @@ import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import io.github.intellij.dlanguage.psi.*;
+import io.github.intellij.dlanguage.psi.interfaces.FunctionBody;
 import io.github.intellij.dlanguage.psi.named.DlangConstructor;
-import io.github.intellij.dlanguage.psi.named.DlangIdentifier;
 import io.github.intellij.dlanguage.psi.impl.DLanguageParametersImpl;
 import io.github.intellij.dlanguage.psi.impl.DNamedStubbedPsiElementBase;
 import io.github.intellij.dlanguage.resolve.ScopeProcessorImpl;
@@ -48,8 +48,8 @@ public class DLanguageConstructorImpl extends
 
     @Override
     @Nullable
-    public DLanguageFunctionBody getFunctionBody() {
-        return PsiTreeUtil.getChildOfType(this, DLanguageFunctionBody.class);
+    public FunctionBody getFunctionBody() {
+        return PsiTreeUtil.getChildOfType(this, FunctionBody.class);
     }
 
     @Nullable
@@ -95,7 +95,7 @@ public class DLanguageConstructorImpl extends
     }
 
     @Nullable
-    public DlangIdentifier getNameIdentifier() {
+    public PsiElement getNameIdentifier() {
         if (getParentClassOrStructOrTemplateOrInterfaceOrUnion(this) == null)
             return null;
         return getParentClassOrStructOrTemplateOrInterfaceOrUnion(this).getNameIdentifier();

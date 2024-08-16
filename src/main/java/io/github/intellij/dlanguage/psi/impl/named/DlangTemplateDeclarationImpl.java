@@ -8,7 +8,7 @@ import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import io.github.intellij.dlanguage.psi.*;
-import io.github.intellij.dlanguage.psi.named.DlangIdentifier;
+import io.github.intellij.dlanguage.psi.interfaces.Declaration;
 import io.github.intellij.dlanguage.psi.named.DlangTemplateDeclaration;
 import io.github.intellij.dlanguage.resolve.ScopeProcessorImpl;
 import io.github.intellij.dlanguage.stubs.DlangTemplateDeclarationStub;
@@ -59,14 +59,8 @@ public class DlangTemplateDeclarationImpl extends
 
     @NotNull
     @Override
-    public List<DLanguageDeclaration> getDeclarations() {
-        return PsiTreeUtil.getChildrenOfTypeAsList(this, DLanguageDeclaration.class);
-    }
-
-    @Nullable
-    @Override
-    public DLanguageEponymousTemplateDeclaration getEponymousTemplateDeclaration() {
-        return PsiTreeUtil.getChildOfType(this, DLanguageEponymousTemplateDeclaration.class);
+    public List<Declaration> getDeclarations() {
+        return PsiTreeUtil.getChildrenOfTypeAsList(this, Declaration.class);
     }
 
     @Nullable
@@ -77,8 +71,8 @@ public class DlangTemplateDeclarationImpl extends
 
     @Override
     @Nullable
-    public DlangIdentifier getIdentifier() {
-        return PsiTreeUtil.getStubChildOfType(this, DlangIdentifier.class);
+    public PsiElement getIdentifier() {
+        return findChildByType(DlangTypes.ID);
     }
 
     @Override
@@ -89,7 +83,7 @@ public class DlangTemplateDeclarationImpl extends
 
     @Nullable
     @Override
-    public DlangIdentifier getNameIdentifier() {
+    public PsiElement getNameIdentifier() {
         return getIdentifier();
     }
 

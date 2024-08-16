@@ -7,11 +7,10 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiTreeUtil.findChildrenOfType
-import io.github.intellij.dlanguage.psi.DLanguageDeclaration
-import io.github.intellij.dlanguage.psi.DlangFile
 import io.github.intellij.dlanguage.psi.DLanguageParameters
+import io.github.intellij.dlanguage.psi.DlangPsiFile
+import io.github.intellij.dlanguage.psi.interfaces.Declaration
 import io.github.intellij.dlanguage.psi.named.DlangSingleImport
-import io.github.intellij.dlanguage.resolve.ParameterCountRange
 import io.github.intellij.dlanguage.resolve.processors.parameters.DAttributesFinder
 
 
@@ -25,8 +24,8 @@ object DPsiUtil {
         return result
     }
 
-    private fun getDeclDefs(defs: PsiElement, declDefsList: MutableList<DLanguageDeclaration>): List<DLanguageDeclaration> {
-        val declDefs = PsiTreeUtil.getChildOfType(defs, DLanguageDeclaration::class.java)
+    private fun getDeclDefs(defs: PsiElement, declDefsList: MutableList<Declaration>): List<Declaration> {
+        val declDefs = PsiTreeUtil.getChildOfType(defs, Declaration::class.java)
         if (declDefs != null) {
             declDefsList.add(declDefs)
             getDeclDefs(declDefs, declDefsList)
@@ -42,8 +41,8 @@ object DPsiUtil {
 
     fun parseImports(file: PsiFile): Set<String> {
         val imports = Sets.newHashSet<String>()
-        val declDefList = Lists.newArrayList<DLanguageDeclaration>()
-        declDefList.addAll(findChildrenOfType(file, DLanguageDeclaration::class.java))
+        val declDefList = Lists.newArrayList<Declaration>()
+        declDefList.addAll(findChildrenOfType(file, Declaration::class.java))
         for (declDef in declDefList) {
             val importDecls = findChildrenOfType(declDef, DlangSingleImport::class.java)
             for (importDecl in importDecls) {
@@ -54,7 +53,7 @@ object DPsiUtil {
     }
 
     fun getParent(element: PsiElement, targetType: Set<IElementType>, excludedType: Set<IElementType>): PsiElement? {
-        if (element.parent == null || element is DlangFile) {
+        if (element.parent == null || element is DlangPsiFile) {
             return null
         }
 
@@ -84,8 +83,8 @@ object DPsiUtil {
                 max++
                 continue
             }
-            val param = parameter.type?.type_2?.typeIdentifierPart?.identifierOrTemplateInstance?.identifier
-            if (param is Identifier) {
+            val param = parameter.type?.basicType?.qualifiedIdentifier?.identifier
+            if (param != null) {
                 val resolve = param.reference?.resolve()
                 if (resolve is TemplateParameter) {//todo make this identifier resolving proof
                     if (resolve.templateTupleParameter != null) {
@@ -104,5 +103,13 @@ object DPsiUtil {
         return ParameterCountRange(min, max)
 
     }
+}
+
+fun getImportText(chain: IdentifierChain): String {
+    chain.identifier?: return ""
+    var text = chain.identifier!!.text
+    if (chain.identifierChain != null)
+        text = getImportText(chain.identifierChain!!) + "." + text
+    return text
 }
 

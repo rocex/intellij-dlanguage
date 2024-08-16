@@ -7,7 +7,6 @@ import com.intellij.psi.PsiElement
 import io.github.intellij.dlanguage.DlangBundle
 import io.github.intellij.dlanguage.psi.DlangVisitor
 import io.github.intellij.dlanguage.psi.impl.named.*
-import io.github.intellij.dlanguage.utils.ClassDeclaration
 import java.util.regex.Pattern
 
 /**
@@ -32,12 +31,14 @@ class PhobosStyleGuidelinesVisitor(val holder: ProblemsHolder) : DlangVisitor() 
     }
 
     override fun visitModuleDeclaration(o: DlangModuleDeclarationImpl) {
-        for (identifier in o.identifierChain!!.identifiers) {
-            checkName("Module", identifier.name, identifier, moduleNameRegex)
+        var identifierChain = o.identifierChain
+        while (identifierChain != null) {
+            checkName("Module", identifierChain.identifier!!.text, identifierChain.identifier!!, moduleNameRegex)
+            identifierChain = identifierChain.identifierChain
         }
     }
 
-    override fun visitDeclarator(o: DLanguageDeclaratorImpl) {
+    override fun visitDeclarator(o: DLanguageIdentifierInitializerImpl) {
         checkName("Variable", StringUtil.decapitalize(o.name), o.nameIdentifier!!, varFunNameRegex)
     }
 
@@ -45,13 +46,12 @@ class PhobosStyleGuidelinesVisitor(val holder: ProblemsHolder) : DlangVisitor() 
         checkName("Function", StringUtil.decapitalize(o.name), o.nameIdentifier!!, varFunNameRegex)
     }
 
-    override fun visitInterfaceOrClass(o: DlangInterfaceOrClassImpl) {
-        val type: String
-        if (o.parent is ClassDeclaration)
-            type = "Class"
-        else
-            type = "Interface"
-        checkName(type, o.name, o, aggregateNameRegex)
+    override fun visitClassDeclaration(o: DlangClassDeclarationImpl) {
+        checkName("Class", o.name, o, aggregateNameRegex)
+    }
+
+    override fun visitInterfaceDeclaration(o: DlangInterfaceDeclarationImpl) {
+        checkName("Interface", o.name, o, aggregateNameRegex)
     }
 
     override fun visitStructDeclaration(o: DlangStructDeclarationImpl) {
@@ -65,6 +65,4 @@ class PhobosStyleGuidelinesVisitor(val holder: ProblemsHolder) : DlangVisitor() 
     override fun visitEnumDeclaration(o: DlangEnumDeclarationImpl) {
         checkName("Enum", o.name, o, aggregateNameRegex)
     }
-
-
 }

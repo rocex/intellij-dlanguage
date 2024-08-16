@@ -22,8 +22,8 @@ public class DlangDmdConfigToArgsConverter {
 
     public static List<String> getDmdParameters(@NotNull final DlangRunDmdConfiguration config, @NotNull final Module module)
                                                                 throws NoSourcesException, ExecutionException {
-        final VirtualFile[] sourcesRoots = ModuleRootManager.getInstance(module).getSourceRoots();
-        final VirtualFile[] excludedRoots = getExcludedRoots(module);
+        @NotNull final VirtualFile[] sourcesRoots = ModuleRootManager.getInstance(module).getSourceRoots();
+        @Nullable final VirtualFile[] excludedRoots = getExcludedRoots(module);
         final List<String> dmdParameters = new LinkedList<>();
 
         dmdParameters.addAll(configToParameters(config));
@@ -32,7 +32,6 @@ public class DlangDmdConfigToArgsConverter {
         for (final VirtualFile sourcesRoot : sourcesRoots) {
             dmdParameters.addAll(getAllDLangSources(sourcesRoot, excludedRoots));
         }
-
 
         return dmdParameters;
     }
@@ -212,13 +211,11 @@ public class DlangDmdConfigToArgsConverter {
         }
     }
 
+    // todo: should we add -gdwarf=3 (3, 4, or 5), -gf, and -gs ?
     private static void buildDebugParameters(final DlangRunDmdConfiguration config,
         final List<String> parameters) {
         if (config.isAddSymbolicDebugInfo()) {
             parameters.add("-g");
-        }
-        if (config.isAddSymbolicDebugInfoC()) {
-            parameters.add("-gc");
         }
         if (config.isGenerateStandardStackFrame()) {
             parameters.add("-gs");
@@ -233,7 +230,7 @@ public class DlangDmdConfigToArgsConverter {
     }
 
     @NotNull
-    private static List<String> getAllDLangSources(@NotNull final VirtualFile sourcesRoot, final VirtualFile[] excludedRoots) throws NoSourcesException {
+    private static List<String> getAllDLangSources(@NotNull final VirtualFile sourcesRoot, @Nullable final VirtualFile[] excludedRoots) throws NoSourcesException {
         final DlangVirtualFileVisitor visitor = new DlangVirtualFileVisitor(excludedRoots);
         VfsUtilCore.visitChildrenRecursively(sourcesRoot, visitor);
 

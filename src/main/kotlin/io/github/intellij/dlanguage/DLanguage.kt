@@ -29,7 +29,7 @@ import com.intellij.ui.EditorNotificationPanel
 import io.github.intellij.dlanguage.index.DModuleIndex
 import io.github.intellij.dlanguage.parser.ParserWrapper
 import io.github.intellij.dlanguage.psi.DTokenSets.STRING_LITERALS
-import io.github.intellij.dlanguage.psi.DlangFile
+import io.github.intellij.dlanguage.psi.DlangPsiFileImpl
 import io.github.intellij.dlanguage.psi.DlangTypes
 import io.github.intellij.dlanguage.resolve.processors.basic.BasicResolve
 import io.github.intellij.dlanguage.stubs.types.DFileStubElementType
@@ -108,7 +108,7 @@ class DLangProjectDmdSetupValidator : ProjectSdkSetupValidator {
     )
 
     override fun isApplicableFor(project: Project, file: VirtualFile): Boolean {
-        if (DlangFileType.INSTANCE != file.fileType) return false
+        if (DlangFileType != file.fileType) return false
         val projectSdk = ProjectRootManager.getInstance(project).projectSdk ?: return true
         val sdkType = projectSdk.sdkType as? DlangSdkType ?: return true
 
@@ -225,7 +225,7 @@ class DLangParserDefinition : ParserDefinition {
     @NotNull
     override fun createParser(project: Project?): ParserWrapper = ParserWrapper()
 
-    override fun createFile(viewProvider: FileViewProvider): PsiFile = DlangFile(viewProvider)
+    override fun createFile(viewProvider: FileViewProvider): PsiFile = DlangPsiFileImpl(viewProvider)
 
     override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?): ParserDefinition.SpaceRequirements = ParserDefinition.SpaceRequirements.MAY
 

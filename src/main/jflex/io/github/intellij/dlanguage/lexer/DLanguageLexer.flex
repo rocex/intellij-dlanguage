@@ -28,7 +28,8 @@ import io.github.intellij.dlanguage.psi.DlangTypes;
 %unicode
 
 WHITE_SPACE_CHAR = [\ \t\f]
-NEW_LINE = [\n\r]+
+NEW_LINE = [\n\r]
+WHITE_SPACE = ({WHITE_SPACE_CHAR}|{NEW_LINE})+
 
 
 LETTER = [:letter:]
@@ -92,7 +93,6 @@ DECIMAL_INTEGER = 0 | ({NON_ZERO_DIGIT} {DECIMAL_DIGITS_US}?)
 BINARY_INTEGER = (0[bB]) {BINARY_DIGITS_NO_SINGLE_US}
 HEXADECIMAL_INTEGER = {HEX_PREFIX} {HEX_DIGITS_NO_SINGLE_US}
 NON_ZERO_DIGIT = [1-9]
-DECIMAL_DIGITS = {DECIMAL_DIGIT}+
 DECIMAL_DIGITS_US = {DECIMAL_DIGIT_US}+
 DECIMAL_DIGITS_NO_SINGLE_US = ({DECIMAL_DIGIT} {DECIMAL_DIGITS_US}?) | ({DECIMAL_DIGITS_US} {DECIMAL_DIGIT})
 DECIMAL_DIGITS_NO_STARTING_US = {DECIMAL_DIGIT} {DECIMAL_DIGITS_US}?
@@ -140,8 +140,7 @@ NESTING_BLOCK_DOC_END = "+/"
 %%
 
 <YYINITIAL> {
- {WHITE_SPACE_CHAR}+       { return com.intellij.psi.TokenType.WHITE_SPACE; }
- {NEW_LINE}+               { return com.intellij.psi.TokenType.WHITE_SPACE; }
+ {WHITE_SPACE}       { return com.intellij.psi.TokenType.WHITE_SPACE; }
 
  {TOKEN_STRING_START} {
     yybegin(TOKEN_STRING_CONTENT);
@@ -371,10 +370,6 @@ NESTING_BLOCK_DOC_END = "+/"
  "<="                       { return OP_LESS_EQ; }
  ">"                        { return OP_GT; }
  ">="                       { return OP_GT_EQ; }
- "!<>"                      { return OP_UNORD; }
- "!<>="                     { return OP_UNORD_EQ; }
- "<>"                       { return OP_LESS_GR; }
- "<>="                      { return OP_LESS_GR_EQ; }
  "!>"                       { return OP_NOT_GR; }
  "!>="                      { return OP_NOT_GR_EQ; }
  "!<"                       { return OP_NOT_LESS; }

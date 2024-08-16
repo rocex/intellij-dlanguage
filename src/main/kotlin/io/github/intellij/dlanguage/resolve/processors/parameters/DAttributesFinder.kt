@@ -11,7 +11,7 @@ import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.psi.util.PsiTreeUtil
 import io.github.intellij.dlanguage.psi.*
 import io.github.intellij.dlanguage.psi.interfaces.DNamedElement
-import io.github.intellij.dlanguage.psi.named.DlangIdentifier
+import io.github.intellij.dlanguage.psi.interfaces.Declaration
 import io.github.intellij.dlanguage.psi.named.DlangSingleImport
 import io.github.intellij.dlanguage.psi.named.DlangTemplateDeclaration
 import io.github.intellij.dlanguage.utils.*
@@ -29,8 +29,8 @@ class DAttributesFinder {
         this.startingPoint = startingPoint
 
         val elem: DNamedElement
-        if (startingPoint !is DNamedElement || startingPoint is DlangIdentifier) {
-            val parentNamedElement = PsiTreeUtil.findFirstParent(startingPoint, Condition { it is DNamedElement && it !is DlangIdentifier })
+        if (startingPoint !is DNamedElement) {
+            val parentNamedElement = PsiTreeUtil.findFirstParent(startingPoint, { it is DNamedElement })
             if (parentNamedElement == null) {
                 throw IllegalArgumentException("Asked for attributes of something that isn't a DNamedElement, or the child of a DNamedElement")
             }
@@ -44,9 +44,12 @@ class DAttributesFinder {
         } else if (elem is FunctionDeclaration) {
             defualts = defaultFunctionDeclaration(elem)
             directApplication = handleFunctionDeclaration(elem)
-        } else if (elem is InterfaceOrClass) {
-            defualts = defaultInterfaceOrClass(elem)
-            directApplication = handleInterfaceOrClass(elem)
+        } else if (elem is ClassDeclaration) {
+            defualts = defaultClassDeclaration(elem)
+            directApplication = handleClassDeclaration(elem)
+        } else if (elem is InterfaceDeclaration) {
+            defualts = defaultInterfaceDeclaration(elem)
+            directApplication = handleInterfaceDeclaration(elem)
         } else if (elem is UnionDeclaration) {
             defualts = defaultUnionDeclaration(elem)
             directApplication = handleUnionDeclaration(elem)
@@ -56,7 +59,7 @@ class DAttributesFinder {
         } else if (elem is LabeledStatement) {
             defualts = defaultLabeledStatement(elem)
             directApplication = handleLabeledStatement(elem)
-        } else if (elem is AutoDeclarationPart) {
+        } else if (elem is AutoAssignment) {
             defualts = defaultAutoDeclarationPart(elem)
             directApplication = handleAutoDeclarationPart(elem)
         } else if (elem is EnumDeclaration) {
@@ -65,12 +68,9 @@ class DAttributesFinder {
         } else if (elem is Catch) {
             defualts = defaultCatch(elem)
             directApplication = handleCatch(elem)
-        } else if (elem is Declarator) {
-            defualts = defaultDeclarator(elem)
-            directApplication = handleDeclarator(elem)
-        } else if (elem is EponymousTemplateDeclaration) {
-            defualts = defaultEponymousTemplateDeclaration(elem)
-            directApplication = handleEponymousTemplateDeclaration(elem)
+        } else if (elem is IdentifierInitializer) {
+            defualts = defaultIdentifierInitializer(elem)
+            directApplication = handleIdentifierInitializer(elem)
         } else if (elem is ForeachType) {
             defualts = defaultForeachType(elem)
             directApplication = handleForeachType(elem)
@@ -134,7 +134,7 @@ class DAttributesFinder {
 
     private fun handleAliasInit(aliasInit: AliasInitializer): DirectApplication {
         val aliasDecl = aliasInit.parent as AliasDeclaration
-        val attribs = updateFromParentDecl(aliasDecl.parent as Declaration)
+        val attribs = updateFromParentDecl(aliasDecl)
         for (storageClasss in aliasInit.storageClasss) {
             updateFromStorageClass(storageClasss, attribs)
         }
@@ -177,12 +177,10 @@ class DAttributesFinder {
     private fun handleSingleImport(startingPoint: SingleImport): DirectApplication {
         val decl: Declaration
         if (startingPoint.parent is ImportDeclaration) {
-            val importDecl = startingPoint.parent as ImportDeclaration
-            decl = importDecl.parent as Declaration
+            decl = startingPoint.parent as ImportDeclaration
         } else {
             val bind = startingPoint.parent as ImportBindings
-            val importDecl = bind.parent as ImportDeclaration
-            decl = importDecl.parent as Declaration
+            decl = bind.parent as ImportDeclaration
         }
         return updateFromParentDecl(decl)
     }
@@ -272,7 +270,7 @@ class DAttributesFinder {
                 if (!execute(point)) {
                     return
                 }
-                if (point is DlangFile || point.prevSibling == null) {
+                if (point is DlangPsiFile || point.prevSibling == null) {
                     break
                 }
                 point = point.prevSibling
@@ -287,7 +285,7 @@ class DAttributesFinder {
     fun isParent(parent: PsiElement, child: PsiElement): Boolean {
         if (child == parent)
             return true
-        if (child is DlangFile) {
+        if (child is DlangPsiFile) {
             return false
         }
         return isParent(parent, child.parent)
@@ -319,14 +317,7 @@ class DAttributesFinder {
         if (element is Attribute) {
             updateFromAttribute(element)
         }
-        if (element is Declaration) {
-            if (element.attributeDeclaration != null) {
-                for (attribute in element.attributes) {
-                    updateFromAttribute(attribute)
-                }
-            }
-        }
-        if (element is AttributeDeclaration) {
+        if (element is AttributeSpecifier) {
             updateFromAttribute(element.attribute!!)
         }
         return true
@@ -377,7 +368,7 @@ class DAttributesFinder {
                     bulkAttributeApplied.static = true
                 }
             } else if (attribute.alignAttribute != null) {
-            } else if (attribute.atAttribute?.identifier?.name == "property") {
+            } else if (attribute.atAttribute?.identifier?.text == "property") {
                 if (bulkAttributeApplied.property == null) {
                     bulkAttributeApplied.property = true
                 }
@@ -390,8 +381,7 @@ class DAttributesFinder {
 
 
     fun handleConstructor(constructor: Constructor): DirectApplication {
-        val decl = constructor.parent as Declaration
-        return updateFromParentDecl(decl)
+        return updateFromParentDecl(constructor)
     }
 
     //todo at some later date maybe make these members of there respective functions to make things more object -oriented
@@ -412,8 +402,7 @@ class DAttributesFinder {
     }
 
     fun handleFunctionDeclaration(function: FunctionDeclaration): DirectApplication {
-        val decl = function.parent as Declaration
-        val attribs = updateFromParentDecl(decl)
+        val attribs = updateFromParentDecl(function)
         handle(function.memberFunctionAttributes, attribs)
         return attribs
     }
@@ -457,7 +446,7 @@ class DAttributesFinder {
 
     private fun updateFromParentDecl(decl: Declaration): DirectApplication {
         val attribs = DirectApplication()
-        for (attribute in decl.attributes) {
+        /*for (attribute in decl.attributes) {
             if (attribute.kW_ENUM != null) {
                 attribs.enum = true
             }
@@ -485,16 +474,34 @@ class DAttributesFinder {
             if (attribute.kW_STATIC != null) {
                 attribs.static = true
             }
-        }
+        }*/
         return attribs
     }
 
-    fun handleInterfaceOrClass(interfaceOrClass: InterfaceOrClass): DirectApplication {
-        val decl = interfaceOrClass.parent.parent as Declaration
-        return updateFromParentDecl(decl)
+    fun handleClassDeclaration(classDeclaration: ClassDeclaration): DirectApplication {
+        return updateFromParentDecl(classDeclaration)
     }
 
-    fun defaultInterfaceOrClass(interfaceOrClass: InterfaceOrClass): DefaultAttributes {
+    fun handleInterfaceDeclaration(interfaceDeclaration: InterfaceDeclaration): DirectApplication {
+        return updateFromParentDecl(interfaceDeclaration)
+    }
+
+    fun defaultClassDeclaration(classDeclaration: ClassDeclaration): DefaultAttributes {
+        return DefaultAttributes(
+            static = true,
+            visibility = Visibility.PUBLIC,
+            property = false,
+            noGC = false,
+            //Not extern by default I believe
+            extern = false,
+            pure = false,
+            nothrow = false,
+            const = false,
+            immutable = false
+        )
+    }
+
+    fun defaultInterfaceDeclaration(interfaceDeclaration: InterfaceDeclaration): DefaultAttributes {
         return DefaultAttributes(
             static = true,
             visibility = Visibility.PUBLIC,
@@ -510,8 +517,7 @@ class DAttributesFinder {
     }
 
     fun handleUnionDeclaration(union: UnionDeclaration): DirectApplication {
-        val decl = union.parent as Declaration
-        return updateFromParentDecl(decl)
+        return updateFromParentDecl(union)
     }
 
     fun defaultUnionDeclaration(union: UnionDeclaration): DefaultAttributes {
@@ -530,8 +536,7 @@ class DAttributesFinder {
     }
 
     fun handleStructDeclaration(struct: StructDeclaration): DirectApplication {
-        val decl = struct.parent as Declaration
-        return updateFromParentDecl(decl)
+        return updateFromParentDecl(struct)
     }
 
     fun defaultStructDeclaration(struct: StructDeclaration): DefaultAttributes {
@@ -570,22 +575,17 @@ class DAttributesFinder {
         )
     }
 
-    fun handleAutoDeclarationPart(autoDeclPart: AutoDeclarationPart): DirectApplication {
+    fun handleAutoDeclarationPart(autoDeclPart: AutoAssignment): DirectApplication {
         val autoDecl = autoDeclPart.parent as AutoDeclaration
-        val varDecl = autoDecl.parent as VariableDeclaration
-        val decl = varDecl.parent as Declaration
-        val attribs = updateFromParentDecl(decl)
+        val attribs = updateFromParentDecl(autoDecl)
         for (storageClasss in autoDecl.storageClasss) {
-            updateFromStorageClass(storageClasss, attribs)
-        }
-        for (storageClasss in varDecl.storageClasss) {
             updateFromStorageClass(storageClasss, attribs)
         }
         return attribs
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun defaultAutoDeclarationPart(autoDeclPart: AutoDeclarationPart): DefaultAttributes {
+    fun defaultAutoDeclarationPart(autoDeclPart: AutoAssignment): DefaultAttributes {
         return DefaultAttributes(
             static = true,
             visibility = Visibility.PUBLIC,
@@ -622,7 +622,7 @@ class DAttributesFinder {
     }
 
     fun handleEnumDeclaration(enumDecl: EnumDeclaration): DirectApplication {
-        return updateFromParentDecl(enumDecl.parent as Declaration)
+        return updateFromParentDecl(enumDecl)
     }
 
     fun defaultEnumDeclaration(enumDecl: EnumDeclaration): DefaultAttributes {
@@ -654,8 +654,8 @@ class DAttributesFinder {
         //cannot be const/immutable etc, so no need to update from attributes
     }
 
-    fun handleDeclarator(decl: Declarator): DirectApplication {
-        val varDecls = decl.parent as VariableDeclaration
+    fun handleIdentifierInitializer(decl: IdentifierInitializer): DirectApplication {
+        val varDecls = decl.parent as SpecifiedVariableDeclaration
         val attribs = DirectApplication()
         for (storageClasss in varDecls.storageClasss) {
             updateFromStorageClass(storageClasss, attribs)
@@ -663,7 +663,7 @@ class DAttributesFinder {
         return attribs
     }
 
-    fun defaultDeclarator(decl: Declarator): DefaultAttributes {
+    fun defaultIdentifierInitializer(decl: IdentifierInitializer): DefaultAttributes {
         return DefaultAttributes(
             static = true,
             visibility = Visibility.PUBLIC,
@@ -676,24 +676,6 @@ class DAttributesFinder {
             const = false,
             immutable = false
         )
-    }
-
-    fun handleEponymousTemplateDeclaration(decl: EponymousTemplateDeclaration): DirectApplication {
-        return updateFromParentDecl(decl.parent as Declaration)
-    }
-
-    fun defaultEponymousTemplateDeclaration(decl: EponymousTemplateDeclaration): DefaultAttributes {
-        return DefaultAttributes(
-            static = true,
-            visibility = Visibility.PUBLIC,
-            property = false,
-            noGC = false,
-            //Not extern by default I believe todo check this
-            extern = false,
-            pure = false,
-            nothrow = false,
-            const = false,
-            immutable = false)
     }
 
     @Suppress("UNUSED_PARAMETER")

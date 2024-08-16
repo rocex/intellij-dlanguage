@@ -7,8 +7,7 @@ import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.PsiTreeUtil;
-import io.github.intellij.dlanguage.psi.DLanguageDeclarationOrStatement;
-import io.github.intellij.dlanguage.psi.named.DlangIdentifier;
+import io.github.intellij.dlanguage.psi.interfaces.Statement;
 import io.github.intellij.dlanguage.psi.DLanguageLabeledStatement;
 import io.github.intellij.dlanguage.psi.DlangVisitor;
 import io.github.intellij.dlanguage.psi.impl.DNamedStubbedPsiElementBase;
@@ -17,6 +16,7 @@ import io.github.intellij.dlanguage.stubs.DlangLabeledStatementStub;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static io.github.intellij.dlanguage.psi.DlangTypes.ID;
 import static io.github.intellij.dlanguage.psi.DlangTypes.OP_COLON;
 
 public class DLanguageLabeledStatementImpl extends DNamedStubbedPsiElementBase<DlangLabeledStatementStub> implements DLanguageLabeledStatement {
@@ -41,8 +41,8 @@ public class DLanguageLabeledStatementImpl extends DNamedStubbedPsiElementBase<D
 
     @Override
     @Nullable
-    public DlangIdentifier getIdentifier() {
-        return PsiTreeUtil.getStubChildOfType(this, DlangIdentifier.class);
+    public PsiElement getIdentifier() {
+        return findChildByType(ID);
     }
 
     @Nullable
@@ -53,13 +53,13 @@ public class DLanguageLabeledStatementImpl extends DNamedStubbedPsiElementBase<D
 
     @Nullable
     @Override
-    public DLanguageDeclarationOrStatement getDeclarationOrStatement() {
-        return PsiTreeUtil.getChildOfType(this, DLanguageDeclarationOrStatement.class);
+    public Statement getStatement() {
+        return PsiTreeUtil.getChildOfType(this, Statement.class);
     }
 
     @Nullable
     @Override
-    public DlangIdentifier getNameIdentifier() {
+    public PsiElement getNameIdentifier() {
         return getIdentifier();
     }
 

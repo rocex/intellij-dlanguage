@@ -6,7 +6,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import io.github.intellij.dlanguage.features.documentation.DDocGenerator
 import io.github.intellij.dlanguage.features.documentation.DSignatureDocGenerator
 import io.github.intellij.dlanguage.features.documentation.psi.DlangDocComment
-import io.github.intellij.dlanguage.psi.DlangFile
+import io.github.intellij.dlanguage.psi.DlangPsiFile
 import io.github.intellij.dlanguage.psi.impl.named.DlangSingleImportImpl
 import io.github.intellij.dlanguage.psi.interfaces.DNamedElement
 import io.github.intellij.dlanguage.psi.named.DlangSingleImport
@@ -55,7 +55,7 @@ class DDocumentationProvider : AbstractDocumentationProvider() {
     }
 
     override fun collectDocComments(file: PsiFile, sink: Consumer<in PsiDocCommentBase>) {
-        if (file !is DlangFile) return
+        if (file !is DlangPsiFile) return
         for (element in SyntaxTraverser.psiTraverser(file)) {
             if (element is DlangDocComment) {
                 sink.accept(element)
@@ -97,10 +97,10 @@ class DDocumentationProvider : AbstractDocumentationProvider() {
     override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
         if (element is DNamedElement) {
             val builder = StringBuilder()
-            var declarationElement = element.parent
+            var declarationElement = element
             if (declarationElement is TemplateDeclaration && declarationElement.parent is MixinTemplateDeclaration)
                 declarationElement = declarationElement.parent
-            DSignatureDocGenerator().appendDeclarationHeader(builder, declarationElement, element)
+            DSignatureDocGenerator().appendDeclarationHeader(builder, declarationElement!!, element)
             val doc = DDocGenerator().generateDoc(element)
             builder.append(doc)
             return builder.toString().ifBlank { null }

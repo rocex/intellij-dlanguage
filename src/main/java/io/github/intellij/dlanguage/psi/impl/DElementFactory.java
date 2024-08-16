@@ -7,9 +7,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import io.github.intellij.dlanguage.DLanguage;
 import io.github.intellij.dlanguage.psi.DLanguageAliasDeclaration;
-import io.github.intellij.dlanguage.psi.DlangFile;
+import io.github.intellij.dlanguage.psi.DLanguageSpecifiedVariableDeclaration;
+import io.github.intellij.dlanguage.psi.DlangPsiFile;
 import io.github.intellij.dlanguage.psi.named.DlangModuleDeclaration;
-import io.github.intellij.dlanguage.psi.named.DlangIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,17 +24,13 @@ public class DElementFactory {
      * Takes a name and returns a Psi node of that name, or null.
      */
     @Nullable
-    public static DlangIdentifier createDLanguageIdentifierFromText(@NotNull final Project project, @NotNull final String name) {
-        @Nullable PsiElement element = createExpressionFromText(project, name);
+    public static PsiElement createDLanguageIdentifierFromText(@NotNull final Project project, @NotNull final String name) {
+        if (name.isBlank()) return null;
+        @Nullable PsiElement element = createExpressionFromText(project, "int " + name + ";");
+        assert element != null;
+        final PsiElement e = ((DLanguageSpecifiedVariableDeclaration) element).getIdentifierInitializers().get(0).getIdentifier();
 
-        final DlangIdentifier e;
-        if (element instanceof DlangIdentifier) {
-            e = (DlangIdentifier) element;
-        } else {
-            e = findChildOfType(element, DlangIdentifier.class);
-        }
-
-        return e != null && e.getName().equals(name) ? e : null;
+        return e != null && e.getText().equals(name) ? e : null;
     }
 
     /**
@@ -42,27 +38,21 @@ public class DElementFactory {
      */
     @Nullable
     private static PsiElement createExpressionFromText(@NotNull final Project project, @NotNull final String name) {
-        @NotNull final DlangFile fileFromText = createFileFromText(project, name);
+        @NotNull final DlangPsiFile fileFromText = createFileFromText(project, name);
 
         @Nullable final PsiElement firstChild = fileFromText.getFirstChild();
 
-        // todo: this whole chain could do with being more defensive
-        return firstChild != null ? firstChild
-            .getFirstChild()
-            .getLastChild()
-            .getLastChild()
-            .getLastChild()
-            .getLastChild() : null;
+        return firstChild;
     }
 
     /**
      * Create a file containing text.
      */
     @NotNull
-    private static DlangFile createFileFromText(@NotNull final Project project,
+    private static DlangPsiFile createFileFromText(@NotNull final Project project,
                                                 @NotNull final String text) {
-        return (DlangFile) PsiFileFactory.getInstance(project)
-            .createFileFromText("A.hs", DLanguage.INSTANCE, text);
+        return (DlangPsiFile) PsiFileFactory.getInstance(project)
+            .createFileFromText("A.d", DLanguage.INSTANCE, text);
     }
 
     @Nullable

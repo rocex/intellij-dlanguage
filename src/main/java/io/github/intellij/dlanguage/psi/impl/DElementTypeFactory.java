@@ -11,12 +11,12 @@ public class DElementTypeFactory {
     @NotNull
     public static IElementType factory(@NotNull final String name) {
         switch (name) {
-            case "IDENTIFIER":
-                return new IdentifierStubElementType(name);
             case "FUNCTION_DECLARATION":
                 return new FunctionDeclarationStubElementType(name);
-            case "INTERFACE_OR_CLASS":
-                return new InterfaceOrClassStubElementType(name);
+            case "CLASS_DECLARATION":
+                return new ClassDeclarationStubElementType(name);
+            case "INTERFACE_DECLARATION":
+                return new InterfaceDeclarationStubElementType(name);
             case "TEMPLATE_DECLARATION":
                 return new DlangTemplateDeclarationStubElementType(name);
             case "CONSTRUCTOR":
@@ -29,8 +29,8 @@ public class DElementTypeFactory {
                 return new AliasInitializerStubElementType(name);
             case "MODULE_DECLARATION":
                 return new ModuleDeclarationStubElementType(name);
-            case "DECLARATOR":
-                return new DeclaratorStubElementType(name);
+            case "IDENTIFIER_INITIALIZER":
+                return new IdentifierInitializerStubElementType(name);
             case "DECLARATOR_IDENTIFIER":
                 return new DeclaratorIdentifierStubElementType(name);
             case "LABELED_STATEMENT":
@@ -43,8 +43,8 @@ public class DElementTypeFactory {
                 return new StaticConstructorStubElementType(name);
             case "STATIC_DESTRUCTOR":
                 return new StaticDestructorStubElementType(name);
-            case "AUTO_DECLARATION_PART":
-                return new AutoDeclarationPartStubElementType(name);
+            case "AUTO_ASSIGNMENT":
+                return new AutoAssignmentStubElementType(name);
             case "ENUM_DECLARATION":
                 return new EnumDeclarationStubElementType(name);
             case "UNION_DECLARATION":
@@ -63,8 +63,6 @@ public class DElementTypeFactory {
                 return new DlangParameterStubElementType(name);
             case "TEMPLATE_PARAMETER":
                 return new DlangTemplateParameterStubElementType(name);
-            case "EPONYMOUS_TEMPLATE_DECLARATION":
-                return new DlangEponymousTemplateDeclarationStubElementType(name);
             case "ENUM_MEMBER":
                 return new DlangEnumMemberStubElementType(name);
             case "NAMED_IMPORT_BIND":

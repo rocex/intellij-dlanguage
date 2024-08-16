@@ -9,7 +9,6 @@ import io.github.intellij.dlanguage.psi.DLanguageFunctionCallExpression
 import io.github.intellij.dlanguage.psi.references.DReference
 import io.github.intellij.dlanguage.resolve.DResolveUtil
 import io.github.intellij.dlanguage.utils.*
-import kotlin.streams.toList
 
 private fun removeParentheses(parameterText: String): String {
     var text = parameterText
@@ -26,16 +25,8 @@ class ParameterInfo : ParameterInfoHandler<FunctionCallExpression, Pair<Template
 
     }
 
-    override fun getParametersForDocumentation(p: Pair<TemplateParameters?, Parameters>?, context: ParameterInfoContext?): Array<Any>? {
-        TODO("this doesn't need to be implemented b/c it is not used by intellij-core")
-    }
-
-    override fun tracksParameterIndex(): Boolean {
-        TODO("this doesn't need to be implemented b/c it is not used by intellij-core")
-    }
-
     override fun showParameterInfo(functionCallExpression: FunctionCallExpression, context: CreateParameterInfoContext) {
-        var reference = functionCallExpression.unaryExpression?.primaryExpression?.identifierOrTemplateInstance?.identifier?.reference
+        /*var reference = functionCallExpression.unaryExpression?.prmaryExpression?.identifierOrTemplateInstance?.identifier?.reference
         if (reference == null) {
             reference = functionCallExpression.unaryExpression?.primaryExpression?.identifierOrTemplateInstance?.templateInstance?.identifier?.reference
         }
@@ -49,15 +40,15 @@ class ParameterInfo : ParameterInfoHandler<FunctionCallExpression, Pair<Template
         // from struct constructors.
         context.itemsToShow = definitionNodes.flatMap { functionOrStructDefinition: PsiNamedElement ->
             if (functionOrStructDefinition is StructDeclaration) {
-                val structConstructors = functionOrStructDefinition.structBody?.declarations.orEmpty().map { it.constructor }.filterNotNull()
+                val structConstructors = functionOrStructDefinition.structBody?.declarations.orEmpty().filterIsInstance<Constructor>()
                 structConstructors.map { Pair(it.templateParameters, it.parameters) }
             } else if (functionOrStructDefinition is FunctionDeclaration) {
                 val funcDecl = functionOrStructDefinition
                 listOf(Pair(funcDecl.templateParameters, funcDecl.parameters))
             } else
                 emptyList()
-        }.filterNotNull().toTypedArray()
-        context.showHint(functionCallExpression, 0, this)
+        }.toTypedArray()
+        context.showHint(functionCallExpression, 0, this)*/
     }
 
     override fun updateUI(p: Pair<TemplateParameters?, Parameters>, context: ParameterInfoUIContext) {
@@ -70,19 +61,6 @@ class ParameterInfo : ParameterInfoHandler<FunctionCallExpression, Pair<Template
         val element = file.findElementAt(listStart)
         val functionCallExpression = getParentOfType(element, DLanguageFunctionCallExpression::class.java)
         return functionCallExpression
-    }
-
-    override fun getParameterCloseChars(): String? {
-        TODO("this doesn't need to be implemented because it is not used by intellij-core")
-    }
-
-    override fun getParametersForLookup(item: LookupElement, context: ParameterInfoContext): Array<Any>? {
-        //todo I'm not sure what this is meant to do. However going off of intellij source and other plugins it is safe to return null
-        return null
-    }
-
-    override fun couldShowInLookup(): Boolean {
-        return true
     }
 
     override fun findElementForParameterInfo(context: CreateParameterInfoContext): FunctionCallExpression? {
@@ -102,22 +80,14 @@ class ConstructorParameterInfo : ParameterInfoHandler<NewExpression, Parameters>
 
     }
 
-    override fun getParametersForDocumentation(p: Parameters?, context: ParameterInfoContext?): Array<Any>? {
-        TODO("this doesn't need to be implemented b/c it is not used by intellij-core")
-    }
-
-    override fun tracksParameterIndex(): Boolean {
-        TODO("this doesn't need to be implemented b/c it is not used by intellij-core")
-    }
-
     override fun showParameterInfo(newExpression: NewExpression, context: CreateParameterInfoContext) {
-        val reference = newExpression.type?.type_2?.typeIdentifierPart?.identifierOrTemplateInstance?.identifier?.reference
+        val reference = newExpression.type?.basicType?.qualifiedIdentifier?.reference
         if (reference == null || reference !is DReference) {
             return
         }
         val definitionNodes = DResolveUtil.getInstance(newExpression.project).findDefinitionNode(reference.element, false)
-        val classDecls: List<InterfaceOrClass> = definitionNodes.filter { it.parent is ClassDeclaration }.filterIsInstance(InterfaceOrClass::class.java)
-        val constructors = classDecls.flatMap { it.structBody?.declarations.orEmpty() }.map { it.constructor }.filterNotNull()
+        val classDecls: List<ClassDeclaration> = definitionNodes.filterIsInstance(ClassDeclaration::class.java)
+        val constructors = classDecls.flatMap { it.structBody?.declarations.orEmpty() }.filterIsInstance<Constructor>()
         context.itemsToShow = constructors.flatMap { findChildrenOfType(it, Parameters::class.java) }.filterNotNull().toTypedArray()
         context.showHint(newExpression, 0, this)
     }
@@ -128,19 +98,6 @@ class ConstructorParameterInfo : ParameterInfoHandler<NewExpression, Parameters>
 
     override fun findElementForUpdatingParameterInfo(context: UpdateParameterInfoContext): NewExpression? {
         return findNewExpressionFromCursor(context)
-    }
-
-    override fun getParameterCloseChars(): String? {
-        TODO("this doesn't need to be implemented because it is not used by intellij-core")
-    }
-
-    override fun getParametersForLookup(item: LookupElement, context: ParameterInfoContext): Array<Any>? {
-        //todo I'm not sure what this is meant to do. However going off of intellij source and other plugins it is safe to return null
-        return null
-    }
-
-    override fun couldShowInLookup(): Boolean {
-        return true
     }
 
     override fun findElementForParameterInfo(context: CreateParameterInfoContext): NewExpression? {
@@ -164,16 +121,8 @@ class TemplateParameterInfo : ParameterInfoHandler<TemplateInstance, TemplatePar
 
     }
 
-    override fun getParametersForDocumentation(p: TemplateParameters?, context: ParameterInfoContext?): Array<Any>? {
-        TODO("this doesn't need to be implemented b/c it is not used by intellij-core")
-    }
-
-    override fun tracksParameterIndex(): Boolean {
-        TODO("this doesn't need to be implemented b/c it is not used by intellij-core")
-    }
-
     override fun showParameterInfo(templateExpression: TemplateInstance, context: CreateParameterInfoContext) {
-        val reference = templateExpression.identifier?.reference
+        val reference = templateExpression.reference
         if (reference == null || reference !is DReference) {
             return
         }
@@ -189,19 +138,6 @@ class TemplateParameterInfo : ParameterInfoHandler<TemplateInstance, TemplatePar
 
     override fun findElementForUpdatingParameterInfo(context: UpdateParameterInfoContext): TemplateInstance? {
         return findTemplateInstanceFromCursor(context)
-    }
-
-    override fun getParameterCloseChars(): String? {
-        TODO("this doesn't need to be implemented because it is not used by intellij-core")
-    }
-
-    override fun getParametersForLookup(item: LookupElement, context: ParameterInfoContext): Array<Any>? {
-        //todo I'm not sure what this is meant to do. However going off of intellij source and other plugins it is safe to return null
-        return null
-    }
-
-    override fun couldShowInLookup(): Boolean {
-        return true
     }
 
     override fun findElementForParameterInfo(context: CreateParameterInfoContext): TemplateInstance? {
