@@ -1,25 +1,22 @@
-import org.jetbrains.grammarkit.tasks.*
+
+import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // The same as `--stacktrace` param
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 
-fun properties(key: String) = providers.gradleProperty(key).get()
-
 plugins {
-    id("org.gradle.idea")
     id("java")
+    id("org.gradle.idea")
     alias(libs.plugins.kotlin)
     alias(libs.plugins.gradleIntelliJModule)
     alias(libs.plugins.gradleIntelliJPlatform).apply(false) // required to prevent resolution error
     alias(libs.plugins.grammarkit)
     alias(libs.plugins.kover)
 }
-
-val ideaVersion = properties("ideaVersion")
 
 // When testing, set to "true" if you want to have expected data written (to easily update lexer/parser tests)
 val overrideTestData = "false"
@@ -57,30 +54,12 @@ repositories {
     }
 }
 
-sourceSets {
-    main {
-        java.srcDirs("src/main/java", "src/main/kotlin", "gen" , "src/main/jflex")
-        // resources.srcDirs("src/main/resources") // specifying the default causes a problem with processResources on Gradle 7
-    }
-    test {
-        java.srcDirs("src/test/java", "src/test/kotlin")
-    }
-}
-
 tasks.register<Test>("testCompilation") {
     group = "Verification"
     dependsOn(tasks.classes, tasks.testClasses)
     useJUnit {
         include("io/github/intellij/dlanguage/build/**")
     }
-}
-
-val generateSyntaxLexer = tasks.register<GenerateLexerTask>("generateSyntaxLexer") {
-    // source flex file
-    sourceFile.set(file("src/main/jflex/io/github/intellij/dlanguage/lexer/DLanguageLexer.flex"))
-
-    // target directory for lexer
-    targetOutputDir.set(file("gen/io/github/intellij/dlanguage/"))
 }
 
 val generateDocSyntaxLexer = tasks.register<GenerateLexerTask>("generateDocSyntaxLexer") {
@@ -91,31 +70,24 @@ val generateDocSyntaxLexer = tasks.register<GenerateLexerTask>("generateDocSynta
     targetOutputDir.set(file("gen/io/github/intellij/dlanguage/features/documentation/"))
 }
 
-val copyGenScript = tasks.register<Copy>("copyGenScript") {
-    from("src/main/resources/types_regen_script.d")
-    into("gen/io/github/intellij/dlanguage/psi/")
+val generate by tasks.registering {
+    outputs.dir("gen")
+    dependsOn(generateDocSyntaxLexer)
 }
 
-val generatePsi = tasks.register<Exec>("generatePsi") {
-    dependsOn(copyGenScript)
-    workingDir("gen/io/github/intellij/dlanguage/psi/")
-    commandLine("rdmd", "types_regen_script.d")
+
+sourceSets {
+    main {
+        java.srcDirs("src/main/java", "src/main/kotlin", generate, "src/main/jflex")
+        // resources.srcDirs("src/main/resources") // specifying the default causes a problem with processResources on Gradle 7
+    }
+    test {
+        java.srcDirs("src/test/java", "src/test/kotlin")
+    }
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    dependsOn(
-        generateSyntaxLexer,
-        generateDocSyntaxLexer,
-        generatePsi
-    )
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    dependsOn(
-        generateSyntaxLexer,
-        generateDocSyntaxLexer,
-        generatePsi
-    )
+tasks.clean {
+    delete(generate)
 }
 
 dependencies {
@@ -123,6 +95,7 @@ dependencies {
     implementation (project(":errorreporting"))
     implementation (project(":debugger"))
     implementation (project(":sdlang"))
+    implementation (project(":dlang:psi-impl"))
     testImplementation (project(":dlang:plugin-impl"))
 
     implementation (libs.gson) // used by dub parser
@@ -142,5 +115,12 @@ dependencies {
         )
         instrumentationTools()
         testFramework(TestFrameworkType.Plugin.Java)
+    }
+}
+
+// Mark the generated sources as generated in intellij idea
+idea {
+    module {
+        generatedSourceDirs = setOf(file("gen"))
     }
 }

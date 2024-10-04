@@ -9,7 +9,17 @@ plugins {
     alias(libs.plugins.coverallsJacoco)
 }
 
-coverallsJacoco.reportPath = "build/reports/kover/report.xml"
+coverallsJacoco {
+    reportPath = project.layout.buildDirectory.file("reports/kover/report.xml").get().asFile.absolutePath
+    // It is a little bit hacky, but it works. It provides all the sources folders to coverallsJacoco plugin
+    reportSourceSets += rootProject.allprojects.map {
+        listOf(
+            it.layout.projectDirectory.file("src/main/java").asFile,
+            it.layout.projectDirectory.file("src/main/kotlin").asFile,
+            it.layout.projectDirectory.file("gen").asFile,
+        )
+    }.flatten()
+}
 
 repositories {
     mavenCentral()
@@ -72,6 +82,7 @@ dependencies {
         pluginModule(implementation (project(":debugger")))
         pluginModule(implementation (project(":sdlang")))
         pluginModule(implementation (project(":dub")))
+        pluginModule(implementation (project(":dlang:psi-impl")))
 
         intellijIdeaCommunity(properties("ideaVersion"))
 
@@ -92,10 +103,13 @@ dependencies {
     }
 
     // theses kover lines are here to generate a merged report of all the projects
-    kover(project(":"))
-    kover(project(":utils"))
-    kover(project(":errorreporting"))
-    kover(project(":debugger"))
-    kover(project(":sdlang"))
-    kover(project(":dub"))
+    kover (project(":"))
+    kover (project(":utils"))
+    // don’t include errorreporting as it contains no useful code to cover (not covered by tests)
+    // kover (project(":errorreporting"))
+    kover (project(":debugger"))
+    kover (project(":sdlang"))
+    kover (project(":dub"))
+    kover (project(":dlang:psi-api"))
+    kover (project(":dlang:psi-impl"))
 }

@@ -5,11 +5,11 @@ import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import io.github.intellij.dlanguage.features.documentation.DDocGenerator
 import io.github.intellij.dlanguage.features.documentation.DSignatureDocGenerator
-import io.github.intellij.dlanguage.features.documentation.psi.DlangDocComment
+import io.github.intellij.dlanguage.documentation.psi.DlangDocComment
 import io.github.intellij.dlanguage.psi.DlangPsiFile
 import io.github.intellij.dlanguage.psi.impl.named.DlangSingleImportImpl
 import io.github.intellij.dlanguage.psi.interfaces.DNamedElement
-import io.github.intellij.dlanguage.psi.named.DlangSingleImport
+import io.github.intellij.dlanguage.psi.named.DLanguageSingleImport
 import io.github.intellij.dlanguage.utils.MixinTemplateDeclaration
 import io.github.intellij.dlanguage.utils.TemplateDeclaration
 import java.util.function.Consumer
@@ -41,7 +41,7 @@ class DDocumentationProvider : AbstractDocumentationProvider() {
     */
     override fun getUrlFor(element: PsiElement?, originalElement: PsiElement?): List<String> {
         originalElement?.let {
-            val singleImport = PsiTreeUtil.findFirstParent(it, true) { t -> t is DlangSingleImport }
+            val singleImport = PsiTreeUtil.findFirstParent(it, true) { t -> t is DLanguageSingleImport }
 
             val moduleName = (singleImport as DlangSingleImportImpl?)?.importedModuleName
 

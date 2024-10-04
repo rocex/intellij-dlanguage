@@ -4,9 +4,9 @@ import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import io.github.intellij.dlanguage.DlangBundle
+import io.github.intellij.dlanguage.psi.DLanguageImportDeclaration
 import io.github.intellij.dlanguage.psi.DlangVisitor
-import io.github.intellij.dlanguage.psi.impl.DLanguageImportDeclarationImpl
-import io.github.intellij.dlanguage.psi.named.DlangSingleImport
+import io.github.intellij.dlanguage.psi.named.DLanguageSingleImport
 
 class DeprecatedPhobosImport : LocalInspectionTool() {
     override fun getDescriptionFileName(): String = "DeprecatedPhobosImport.html"
@@ -16,7 +16,7 @@ class DeprecatedPhobosImport : LocalInspectionTool() {
 }
 
 class DeprecatedPhobosImportVisitor(val holder: ProblemsHolder) : DlangVisitor() {
-    override fun visitImportDeclaration(declaration: DLanguageImportDeclarationImpl) {
+    override fun visitImportDeclaration(declaration: DLanguageImportDeclaration) {
         declaration.singleImports.forEach {
             when (it.text) {
                 "std.experimental.checkedint" -> register(it, "std.experimental.checkedint became std.checkedint in D 2.099")
@@ -26,7 +26,7 @@ class DeprecatedPhobosImportVisitor(val holder: ProblemsHolder) : DlangVisitor()
         }
     }
 
-    fun register(dlangSingleImport: DlangSingleImport, descriptionTemplate: String) {
+    fun register(dlangSingleImport: DLanguageSingleImport, descriptionTemplate: String) {
         holder.registerProblem(dlangSingleImport, descriptionTemplate, ProblemHighlightType.LIKE_DEPRECATED)
     }
 }

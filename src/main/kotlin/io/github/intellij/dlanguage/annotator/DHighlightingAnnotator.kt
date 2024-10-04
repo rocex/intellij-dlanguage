@@ -5,15 +5,14 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.PsiReference
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import io.github.intellij.dlanguage.colors.DColor
 import io.github.intellij.dlanguage.psi.DLanguageBasicType
-import io.github.intellij.dlanguage.psi.DlangTokenType
 import io.github.intellij.dlanguage.psi.DlangTypes
 import io.github.intellij.dlanguage.psi.interfaces.Declaration
-import io.github.intellij.dlanguage.resolve.processors.basic.BasicResolve
+import io.github.intellij.dlanguage.psi.interfaces.TemplateParameter
 import io.github.intellij.dlanguage.utils.*
 
 // TODO find a better place for this variable
@@ -28,8 +27,8 @@ class DHighlightingAnnotator : Annotator {
         val (partToHighlight, color) = when (element) {
             is AtAttribute -> element.textRange to DColor.AT_ATTRIBUTE
             is ModuleDeclaration -> element.identifierChain?.textRange to DColor.MODULE_DEFINITION
-            is ReferenceExpression -> highlightReference(element)
-            is QualifiedIdentifier -> highlightReference(element)
+            is ReferenceExpression -> highlightReference(element.reference)
+            is QualifiedIdentifier -> highlightReference(element.reference)
             is TemplateSingleArgument -> highlightNotReference(element)
             is TemplateParameter -> highlightNotReference(element)
             else -> if (element.elementType == DlangTypes.ID) { highlightIdentifier(element) }
@@ -41,18 +40,10 @@ class DHighlightingAnnotator : Annotator {
         holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(partToHighlight).textAttributes(color.textAttributesKey).create()
     }
 
-    private fun highlightReference(element: PsiElement): Pair<TextRange, DColor>? {
-        val identifier = when (element) {
-            is ReferenceExpression -> element.identifier
-            is TemplateSingleArgument -> element.identifier
-            is QualifiedIdentifier -> element.identifier
-            else -> element
-        } ?: return null
+    private fun highlightReference(reference: PsiReference?): Pair<TextRange, DColor>? {
+        val identifier = reference?.element?: return null
 
-        val basicResolveResult = BasicResolve.getInstance(element.project, false)
-            .findDefinitionNode(element)
-
-        val result = basicResolveResult.firstOrNull() ?: return null
+        val result = reference.resolve() ?: return null
 
         val color = colorForReferenced(result) ?: return null
         val part = partToHighlight(identifier) ?: return null
@@ -122,15 +113,6 @@ class DHighlightingAnnotator : Annotator {
 
     private fun partToHighlight(element: PsiElement): TextRange? {
         val name = when (element) {
-            is TemplateParameter -> {
-                when {
-                    element.templateTypeParameter != null -> return partToHighlight(element.templateTypeParameter!!)
-                    element.templateValueParameter != null -> return partToHighlight(element.templateValueParameter!!)
-                    element.templateAliasParameter != null -> return partToHighlight(element.templateAliasParameter!!)
-                    element.templateThisParameter != null -> return partToHighlight(element.templateThisParameter!!)
-                    else -> element
-                }
-            }
             is TemplateTypeParameter -> element.identifier
             is TemplateValueParameter -> element.identifier
             is TemplateAliasParameter -> element.identifier

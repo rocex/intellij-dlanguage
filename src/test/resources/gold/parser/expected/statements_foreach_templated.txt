@@ -4,7 +4,7 @@ D Language File
     PsiElement(DlangTokenType.ID)('S')
     DLanguageStructBodyImpl(STRUCT_BODY)
       PsiElement(DlangTokenType.{)('{')
-      DLanguageImportDeclarationImpl(IMPORT_DECLARATION)
+      IMPORT_DECLARATION
         PsiElement(DlangTokenType.import)('import')
         SINGLE_IMPORT
           DLanguageIdentifierChainImpl(IDENTIFIER_CHAIN)
@@ -26,9 +26,8 @@ D Language File
         DLanguageTemplateParametersImpl(TEMPLATE_PARAMETERS)
           PsiElement(DlangTokenType.()('(')
           DLanguageTemplateParameterListImpl(TEMPLATE_PARAMETER_LIST)
-            TEMPLATE_PARAMETER
-              DLanguageTemplateTypeParameterImpl(TEMPLATE_TYPE_PARAMETER)
-                PsiElement(DlangTokenType.ID)('Dg')
+            TEMPLATE_TYPE_PARAMETER
+              PsiElement(DlangTokenType.ID)('Dg')
           PsiElement(DlangTokenType.))(')')
         DLanguageParametersImpl(PARAMETERS)
           PsiElement(DlangTokenType.()('(')
@@ -76,9 +75,8 @@ D Language File
         DLanguageTemplateParametersImpl(TEMPLATE_PARAMETERS)
           PsiElement(DlangTokenType.()('(')
           DLanguageTemplateParameterListImpl(TEMPLATE_PARAMETER_LIST)
-            TEMPLATE_PARAMETER
-              DLanguageTemplateTypeParameterImpl(TEMPLATE_TYPE_PARAMETER)
-                PsiElement(DlangTokenType.ID)('Dg')
+            TEMPLATE_TYPE_PARAMETER
+              PsiElement(DlangTokenType.ID)('Dg')
           PsiElement(DlangTokenType.))(')')
         DLanguageParametersImpl(PARAMETERS)
           PsiElement(DlangTokenType.()('(')

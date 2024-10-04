@@ -41,7 +41,8 @@ public final class DCDCompletionClient {
         try {
             callback.onResults(autoComplete(position, file));
         } catch (final DCDClientException e) {
-            e.printStackTrace();
+            LOG.warn(e.getMessage());
+            callback.onError(e);
         }
     }
 
@@ -55,6 +56,16 @@ public final class DCDCompletionClient {
 
     @Deprecated
     public static synchronized List<Completion> autoComplete(final int position, final PsiFile file, final String fileContent) throws DCDError {
+        if (file.getProject().isDisposed()) {
+            LOG.debug("Won't attempt auto completion via DCD as project is disposed");
+            return Collections.emptyList();
+        }
+
+        if (!file.getVirtualFile().isValid()) {
+            LOG.debug("Won't attempt auto completion via DCD as VirtualFile is not valid");
+            return Collections.emptyList();
+        }
+
         if (StringUtil.isEmptyOrSpaces(fileContent)) {
             LOG.warn("Attempted auto completion via DCD but file content was blank");
             return Collections.emptyList();
@@ -74,7 +85,7 @@ public final class DCDCompletionClient {
 
         final GeneralCommandLine dcdClientCommand = buildDcdCommand(dcdPath, position, file);
         // Protect reading the file's text with the read lock
-        final String fileText = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> file.getText());
+        final String fileText = ApplicationManager.getApplication().runReadAction((Computable<String>) file::getText);
 
         try {
             return runCommandLine(dcdClientCommand, fileText).get(2L, TimeUnit.SECONDS);
@@ -222,8 +233,9 @@ public final class DCDCompletionClient {
 //    }
 
 
-    public static interface DCDCompletionResult {
+    public interface DCDCompletionResult {
         void onResults(final List<Completion>completions);
+        void onError(final DCDClientException e);
     }
 
     public static class DCDClientException extends Exception {

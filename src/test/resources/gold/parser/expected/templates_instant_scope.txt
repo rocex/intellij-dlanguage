@@ -5,9 +5,8 @@ D Language File
     DLanguageTemplateParametersImpl(TEMPLATE_PARAMETERS)
       PsiElement(DlangTokenType.()('(')
       DLanguageTemplateParameterListImpl(TEMPLATE_PARAMETER_LIST)
-        TEMPLATE_PARAMETER
-          DLanguageTemplateTypeParameterImpl(TEMPLATE_TYPE_PARAMETER)
-            PsiElement(DlangTokenType.ID)('T')
+        TEMPLATE_TYPE_PARAMETER
+          PsiElement(DlangTokenType.ID)('T')
       PsiElement(DlangTokenType.))(')')
     PsiElement(DlangTokenType.{)('{')
     FUNCTION_DECLARATION
@@ -30,7 +29,7 @@ D Language File
             PsiElement(DlangTokenType.;)(';')
           PsiElement(DlangTokenType.})('}')
     PsiElement(DlangTokenType.})('}')
-  DLanguageImportDeclarationImpl(IMPORT_DECLARATION)
+  IMPORT_DECLARATION
     PsiElement(DlangTokenType.import)('import')
     SINGLE_IMPORT
       DLanguageIdentifierChainImpl(IDENTIFIER_CHAIN)
@@ -76,9 +75,8 @@ D Language File
     DLanguageTemplateParametersImpl(TEMPLATE_PARAMETERS)
       PsiElement(DlangTokenType.()('(')
       DLanguageTemplateParameterListImpl(TEMPLATE_PARAMETER_LIST)
-        TEMPLATE_PARAMETER
-          DLanguageTemplateTypeParameterImpl(TEMPLATE_TYPE_PARAMETER)
-            PsiElement(DlangTokenType.ID)('T')
+        TEMPLATE_TYPE_PARAMETER
+          PsiElement(DlangTokenType.ID)('T')
       PsiElement(DlangTokenType.))(')')
     PsiElement(DlangTokenType.{)('{')
     FUNCTION_DECLARATION
@@ -122,7 +120,7 @@ D Language File
       DLanguageBlockStatementImpl(BLOCK_STATEMENT)
         PsiElement(DlangTokenType.{)('{')
         PsiElement(DlangTokenType.})('}')
-  DLanguageImportDeclarationImpl(IMPORT_DECLARATION)
+  IMPORT_DECLARATION
     PsiElement(DlangTokenType.import)('import')
     SINGLE_IMPORT
       DLanguageIdentifierChainImpl(IDENTIFIER_CHAIN)

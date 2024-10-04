@@ -19,9 +19,10 @@
     ]]></description>
 
     <change-notes><![CDATA[
-        <b>1.34.3</b> (<a href="https://github.com/intellij-dlanguage/intellij-dlanguage/milestone/59?closed=1">changelist</a>)<br/>
+        <b>1.35</b> (<a href="https://github.com/intellij-dlanguage/intellij-dlanguage/milestone/60?closed=1">changelist</a>)<br/>
         <ul>
-            <li>Supports IntelliJ IDEA 2023.3.* - 2024.2.*</li>
+            <li>Supports IntelliJ IDEA 2024.2 - 2024.2.*</li>
+            <li>Huge improvements to the way symbols are resolved. This is part of ongoing work to improve core functionality of the plugin</li>
         </ul>
     ]]>
     </change-notes>
@@ -34,12 +35,12 @@
     <!--<depends>com.intellij.modules.vcs</depends>-->
     <!--<depends>com.intellij.modules.xml</depends>-->
     <!--<depends>com.intellij.modules.xdebugger</depends>-->
-    <depends optional="true" config-file="META-INF/idea-only.xml-only.xml">com.intellij.modules.java</depends>
+    <depends optional="true" config-file="META-INF/idea-only.xml">com.intellij.modules.java</depends>
     <!--<depends optional="true" config-file="idea-ultimate-only.xml">com.intellij.modules.ultimate</depends>-->
     <depends optional="true" config-file="META-INF/copyright.xml">com.intellij.copyright</depends>
 
     <!-- Both AppCode and CLion use cidr.lang -->
-    <depends optional="true" config-file="META-INF/clion-only.xml-only.xml">com.intellij.modules.cidr.lang</depends>
+    <depends optional="true" config-file="META-INF/clion-only.xml">com.intellij.modules.cidr.lang</depends>
     <!--<depends optional="true" config-file="clion-only.xml">com.intellij.modules.clion</depends>-->
     <!--<depends optional="true" config-file="appcode-only.xml">com.intellij.modules.appcode</depends>-->
 
@@ -132,18 +133,10 @@
         <stubIndex implementation="io.github.intellij.dlanguage.stubs.index.DTopLevelDeclarationIndex"/>
         <stubIndex implementation="io.github.intellij.dlanguage.stubs.index.DModuleDeclarationIndex"/>
         <stubIndex implementation="io.github.intellij.dlanguage.stubs.index.DTopLevelDeclarationsByModule"/>
-        <stubIndex implementation="io.github.intellij.dlanguage.stubs.index.DPublicImportIndex"/>
         <stubIndex implementation="io.github.intellij.dlanguage.stubs.index.DMembersIndex"/>
         <gotoSymbolContributor implementation="io.github.intellij.dlanguage.features.DChooseByNameContributor"/>
         <gotoClassContributor implementation="io.github.intellij.dlanguage.features.DClassContributor"/>
         <!-- Project settings -->
-
-        <!-- Tab under compiler in IntelliJ -> Preferences -->
-        <!--<projectConfigurable instance="io.github.intellij.dlanguage.DLanguageCompilerConfigurable"-->
-        <!--parentId="project.propCompiler" id="DMD compiler"-->
-        <!--displayName="DMD Compiler"/>-->
-        <!-- Persistent data + build server communication for compiler settings -->
-        <projectService serviceImplementation="io.github.intellij.dlanguage.settings.DLanguageBuildSettings"/>
 
         <!-- plugin settings are now in: Settings -> Languages &amp; Frameworks -> D Tools -->
         <projectConfigurable groupId="language" order="first"

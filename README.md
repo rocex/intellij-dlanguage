@@ -14,7 +14,7 @@ Support for the [D Programming Language](http://dlang.org/) within IntelliJ IDEA
 
 The primary focus for the project is to support Intellij IDEA (both IC and IU). Some work has been done to try and support CLion but it's not currently usable. It may work on other IDEs such as AppCode, Android Studio, PyCharm, etc but this is not tested by the dev team.
 
-We generally try to support the last years worth of IDE releases. The current build targets *Intellij 2023.3 - 2024.2*.
+We generally try to support the last years worth of IDE releases. The current build targets *Intellij 2024.2 - 2024.2.+*.
 
 For a list of older releases and their supported IDE versions see our [Compatibility Matrix](https://github.com/intellij-dlanguage/intellij-dlanguage/wiki/Compatibility-Matrix).
 
@@ -67,7 +67,10 @@ If you add the d-unit dependency to your dub.json [d-unit](http://code.dlang.org
 
 ### Configure DTools
 
-The best option is to do and get the following tools and build them according to their GitHub page instructions:
+D Tools are optional but for the best experience it is recommended to at least use the [dub](http://code.dlang.org/download) build tool and ensure that it's configured in the IDE.
+To have auto-completion you will need to download and setup [DCD](https://github.com/Hackerpilot/DCD). Both [DScanner](https://github.com/Hackerpilot/Dscanner) and [Dfmt](https://github.com/Hackerpilot/dfmt) havn't been updated in some time. I no longer use them personally so there may well be issues.
+
+Download the tools from their respective GitHub projects:
 
  * [dub](http://code.dlang.org/download)
  * [DCD](https://github.com/Hackerpilot/DCD)
@@ -75,6 +78,8 @@ The best option is to do and get the following tools and build them according to
  * [Dfmt](https://github.com/Hackerpilot/dfmt)
 
 If you put these tools on your path you can go to (_Settings_ -> _Languages &amp; Frameworks_ -> _D Tools_) and just click autofind on each of the tools and it will find them. Otherwise you will need to select the correct path to the tool for each one.
+
+ ![Configure D Tools](.README/intellij-dlang-settings.gif)
 
 There is a nice blog post about setting up the tools at: [www.samael.me.uk](http://www.samael.me.uk/2015/12/d-plugin-for-intellij-idea.html)
 

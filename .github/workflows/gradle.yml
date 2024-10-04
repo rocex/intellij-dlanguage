@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        idea: [ '2024.2' ]
+        idea: [ '2024.2', '2024.2.2' ]
         jdk: [ '21' ]
         #os: [ubuntu-latest, windows-latest, macOS-latest]
 
@@ -21,8 +21,9 @@ jobs:
       with:
         distribution: temurin
         java-version: ${{ matrix.jdk }}
+        cache: gradle
     - name: Install D compiler
-      uses: dlang-community/setup-dlang@v1
+      uses: dlang-community/setup-dlang@v2
 
     - name: build & check
       env:
@@ -36,5 +37,5 @@ jobs:
 
     - name: Verify Plugin
       env:
-          ORG_GRADLE_PROJECT_ideaVersion: ${{ matrix.idea }}
+        ORG_GRADLE_PROJECT_ideaVersion: ${{ matrix.idea }}
       run: ./gradlew verifyPlugin

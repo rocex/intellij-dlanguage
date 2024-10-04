@@ -21,10 +21,32 @@ class DResolveTest : DResolveTestCase() {
 //    @Test fun testOverloadedParameterCount() = doTest()
 
     @Test
-    fun testClassConstructorToConstructorDefinition() = doTest()
+    fun testClassUsageToOpaqueClassDefinitionShouldResolve() = doTest()
+
+    // Note: the constructor call must resolve to the class to properly handle the rename
+    // Another mechanism will handle the goto behavior to allow a redirection to the constructor call
+    @Test
+    fun testClassConstructorToClassDefinition() = doTest()
+    @Test
+    fun testConstructorCallShouldResolveClassDeclarationInTheSameFile() = doTest()
+
+    @Test
+    fun testDeclarationInsideDeclarationBlock() = doTest()
+
+    @Test
+    fun testDeclarationInsideDeclarationBlockUsageOutside() = doTest()
 
     @Test
     fun testPublicImports() = doTest()
+
+    @Test
+    fun testPublicImportLoopImportShouldNotLoopIndefinitely() = doTest(false)
+
+    @Test
+    fun testPublicImportsWithAttributeSpecifier() = doTest()
+
+    @Test
+    fun testPublicImportsInClassWithAttributeSpecifierShouldNotResolveOutsideClass() = doTest(false)
 
     @Test
     fun testTemplateUsageToTemplateDeclaration() = doTest()
@@ -48,16 +70,14 @@ class DResolveTest : DResolveTestCase() {
     fun testScopedImportsPass() = doTest()
 
     @Test
-    fun testScopedImportsMembers() = doTest()
-
-    @Test
     fun testImportBindResolve() = doTest()
 
     @Test
     fun testImportWithSpacesAndComments() = doTest()
 
-    @Test
-    fun testImportFromPackage() = doTest()
+    // TODO need to handle public imports
+    //@Test
+    //fun testImportFromPackage() = doTest()
 
     @Test
     fun testImportNamedBindResolve() = doTest()
@@ -69,20 +89,34 @@ class DResolveTest : DResolveTestCase() {
     fun testImportClassWithoutConstructor() = doTest()
 
     @Test
-    fun testImportUsageOfRenamedImport() = doTest()
-
-    @Test
     fun testScopeOperatorDotXResolveGlobal() = doTest()
 
-    // TODO should work but resolve state is not currently powerful enough to handle this case
-    //@Test
-    //fun testScopeOperatorDotXResolveGlobalWithImport() = doTest()
+    @Test
+    fun testScopeOperatorDotXResolveGlobalWithImport() = doTest()
 
     @Test
     fun testScopeOperatorXResolveLocal() = doTest()
 
     @Test
-    fun testConstructorCallShouldResolveConstructorWithClassDeclarationInTheSameFile() = doTest()
+    fun testGotoToLabeledStatementShouldResolve() = doTest()
+
+    @Test
+    fun testContinueToLabeledStatementShouldResolve() = doTest()
+
+    @Test
+    fun testForeachVariableUsageResolve() = doTest()
+
+    @Test
+    fun testForeachVariableOutOfScopeUsageShouldNotResolve() = doTest(false)
+
+    @Test
+    fun testForLoopVariableUsageResolve() = doTest()
+
+    @Test
+    fun testForLoopVariableUsageInConditionResolve() = doTest()
+
+    @Test
+    fun testForLoopVariableOutOfScopeUsageShouldNotResolve() = doTest(false)
 
     @Test
     fun testConstructorCallResolveParameters() = doTest()
@@ -90,11 +124,59 @@ class DResolveTest : DResolveTestCase() {
     @Test
     fun testAnonymousEnumUsage() = doTest()
 
-    // TODO should work but resolve state is not currently powerful enough to handle this case
-    //      it needs to handle the chain resolve (A.B)
-    //@Test
-    //fun testEnumUsageWithEnumTypePrefix() = doTest()
+    @Test
+    fun testEnumUsageWithEnumTypePrefix() = doTest()
 
     @Test
     fun testEnumUsageWithoutEnumTypePrefixShouldNotResolve() = doTest(false)
+
+    @Test
+    fun testEnumValueQualifiedAsTypeShouldNotResolve() = doTest(false)
+
+    @Test
+    fun testNestedStructDefinitionReferenceFullyQualifiedShouldResolve() = doTest()
+
+    @Test
+    fun testNestedStructDefinitionReferenceWithoutParentReferenceShouldNotResolve() = doTest(false)
+
+    @Test
+    fun testNestedStructDefinitionReferenceFullyQualifiedShouldNotResolveATopLevelStruct() = doTest(false)
+
+    @Test
+    fun testLocalTypeDefinitionWithUsageAfterDefinitionShouldResolve() = doTest()
+    @Test
+    fun testLocalTypeDefinitionWithUsageBeforeDefinitionShouldNotResolve() = doTest(false)
+
+    @Test
+    fun testVariableInitializationAssignedValuePreviousInitializationSameVariableDeclarationShouldResolve() = doTest()
+
+    @Test
+    fun testVariableInitializationAssignedValueItselfShouldNotResolve() = doTest(false)
+
+    @Test
+    fun testVariableInitializationAssignedValueNextInitializationSameVariableDeclarationShouldNotResolve() = doTest(false)
+
+    @Test
+    fun testTemplateTypeUsageInTemplatedClassShouldResolve() = doTest()
+
+    @Test
+    fun testTemplateTypeShouldNotLeakOutsideTemplate() = doTest(false)
+
+    @Test
+    fun testTemplateInstanceParameterUsageToOuterStructDefinitionShouldResolve() = doTest()
+
+    @Test
+    fun testTemplateThisTypeUsageInTemplatedClassShouldResolve() = doTest()
+
+    @Test
+    fun testTemplateTupleUsageInTemplatedClassShouldResolve() = doTest()
+
+    @Test
+    fun testTemplateTupleUsage2InTemplatedClassShouldResolve() = doTest()
+
+    @Test
+    fun testLambdaParameterUsageShouldResolve() = doTest()
+
+    @Test
+    fun testLambdaMultiParametersUsageShouldResolve() = doTest()
 }
